@@ -18,6 +18,36 @@ void MBPublisher::publish(ur_msgs::IOStates& io_msg, SharedMasterBoardData& data
   io_pub_.publish(io_msg);
 }
 
+void MBPublisher::publishRobotStatus(SharedRobotModeData& data)
+{
+  industrial_msgs::RobotStatus msg;
+  msg.drives_powered.val = data.robot_power_on;
+  msg.e_stopped.val = data.emergency_stopped;
+  msg.in_motion.val = data.program_running;
+  msg.error_code = 0;
+  msg.in_error.val = data.protective_stopped;
+  msg.mode.val = industrial_msgs::TriState::UNKNOWN;
+
+  status_pub_.publish(msg);
+}
+
+void MBPublisher::publishRobotStatus(RobotModeData_V3_0__1& data)
+{
+  industrial_msgs::RobotStatus msg;
+
+  msg.drives_powered.val = data.robot_power_on;
+  msg.e_stopped.val = data.emergency_stopped;
+  msg.in_motion.val = data.program_running;
+  msg.in_error.val = data.protective_stopped;
+  msg.motion_possible.val = (robot_mode_V3_X::RUNNING == data.robot_mode) ? industrial_msgs::TriState::ON : industrial_msgs::TriState::OFF;
+  if (data.control_mode == robot_control_mode_V3_X::TEACH)
+      msg.mode.val = industrial_msgs::RobotMode::MANUAL;
+  else
+      msg.mode.val = industrial_msgs::RobotMode::AUTO;
+
+  status_pub_.publish(msg);
+}
+
 bool MBPublisher::consume(MasterBoardData_V1_X& data)
 {
   ur_msgs::IOStates io_msg;
@@ -42,13 +72,16 @@ bool MBPublisher::consume(MasterBoardData_V3_2& data)
 
 bool MBPublisher::consume(RobotModeData_V1_X& data)
 {
+  publishRobotStatus(data);
   return true;
 }
 bool MBPublisher::consume(RobotModeData_V3_0__1& data)
 {
+  publishRobotStatus(data);
   return true;
 }
 bool MBPublisher::consume(RobotModeData_V3_2& data)
 {
+  publishRobotStatus(data);
   return true;
 }
