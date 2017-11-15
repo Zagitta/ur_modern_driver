@@ -23,7 +23,7 @@ void MBPublisher::publishRobotStatus(SharedRobotModeData& data)
   industrial_msgs::RobotStatus msg;
   msg.drives_powered.val = data.robot_power_on;
   msg.e_stopped.val = data.emergency_stopped;
-  msg.in_motion.val = data.program_running;
+  msg.in_motion.val = industrial_msgs::TriState::UNKNOWN;
   msg.error_code = 0;
   msg.in_error.val = data.protective_stopped;
   msg.mode.val = industrial_msgs::TriState::UNKNOWN;
@@ -34,12 +34,11 @@ void MBPublisher::publishRobotStatus(SharedRobotModeData& data)
 void MBPublisher::publishRobotStatus(RobotModeData_V3_0__1& data)
 {
   industrial_msgs::RobotStatus msg;
-
   msg.drives_powered.val = data.robot_power_on;
   msg.e_stopped.val = data.emergency_stopped;
-  msg.in_motion.val = data.program_running;
+  msg.in_motion.val = industrial_msgs::TriState::UNKNOWN;
   msg.in_error.val = data.protective_stopped;
-  msg.motion_possible.val = (robot_mode_V3_X::RUNNING == data.robot_mode) ? industrial_msgs::TriState::ON : industrial_msgs::TriState::OFF;
+  msg.motion_possible.val = (data.robot_mode == robot_mode_V3_X::RUNNING) ? industrial_msgs::TriState::ON : industrial_msgs::TriState::OFF;
   if (data.control_mode == robot_control_mode_V3_X::TEACH)
       msg.mode.val = industrial_msgs::RobotMode::MANUAL;
   else
