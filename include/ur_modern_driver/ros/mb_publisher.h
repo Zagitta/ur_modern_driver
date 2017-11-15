@@ -30,8 +30,8 @@ private:
   }
 
   void publish(ur_msgs::IOStates& io_msg, SharedMasterBoardData& data);
-  void publishRobotStatus(SharedRobotModeData& data);
-  void publishRobotStatus(RobotModeData_V3_0__1& data);
+  void publishRobotStatus(const RobotModeData_V1_X& data) const;
+  void publishRobotStatus(const RobotModeData_V3_0__1& data) const;
 
 public:
   MBPublisher() : io_pub_(nh_.advertise<ur_msgs::IOStates>("ur_driver/io_states", 1))
