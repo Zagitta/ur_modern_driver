@@ -33,7 +33,10 @@ void ROSController::doSwitch(const std::list<hardware_interface::ControllerInfo>
 
   for (auto const& ci : start_list)
   {
-    auto ait = available_interfaces_.find(ci.name);
+    if (ci.claimed_resources.empty())
+      continue;
+
+    auto ait = available_interfaces_.find(ci.claimed_resources[0].hardware_interface);
 
     if (ait == available_interfaces_.end())
       continue;
