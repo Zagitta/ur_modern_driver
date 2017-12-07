@@ -77,13 +77,12 @@ void ROSController::read(RTShared& packet)
   wrench_interface_.update(packet);
 }
 
-bool ROSController::update(RTShared& state)
+bool ROSController::update()
 {
   auto time = ros::Time::now();
   auto diff = time - lastUpdate_;
   lastUpdate_ = time;
 
-  read(state);
   controller_.update(time, diff, !service_enabled_);
 
   // emergency stop and such should not kill the pipeline
