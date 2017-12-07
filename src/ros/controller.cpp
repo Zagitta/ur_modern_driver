@@ -103,6 +103,11 @@ bool ROSController::update()
   return write();
 }
 
+void ROSController::onTimeout()
+{
+  update();
+}
+
 void ROSController::onRobotStateChange(RobotState state)
 {
   bool next = (state == RobotState::Running);
