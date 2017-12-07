@@ -126,7 +126,7 @@ private:
       {
         if (!queue_.try_enqueue(std::move(p)))
         {
-          LOG_ERROR("Pipeline producer owerflowed!");
+          LOG_ERROR("Pipeline producer overflowed!");
         }
       }
 
