@@ -13,6 +13,7 @@
 #include "ur_modern_driver/ros/rt_publisher.h"
 #include "ur_modern_driver/ros/service_stopper.h"
 #include "ur_modern_driver/ros/trajectory_follower.h"
+#include "ur_modern_driver/ros/urscript_handler.h"
 #include "ur_modern_driver/ur/commander.h"
 #include "ur_modern_driver/ur/factory.h"
 #include "ur_modern_driver/ur/messages.h"
@@ -122,6 +123,19 @@ int main(int argc, char **argv)
     action_server = new ActionServer(traj_follower, args.joint_names, args.max_velocity);
     rt_vec.push_back(action_server);
     services.push_back(action_server);
+  }
+
+  URScriptHandler urscript_handler(*rt_commander);
+  services.push_back(&urscript_handler);
+  if (args.shutdown_on_disconnect)
+  {
+    LOG_INFO("Notifier: Pipeline disconnect will shutdown the node");
+    notifier = new ShutdownOnPipelineStoppedNotifier();
+  }
+  else
+  {
+    LOG_INFO("Notifier: Pipeline disconnect will be ignored.");
+    notifier = new IgnorePipelineStoppedNotifier();
   }
 
   MultiConsumer<RTPacket> rt_cons(rt_vec);
