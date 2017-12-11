@@ -18,30 +18,35 @@ void MBPublisher::publish(ur_msgs::IOStates& io_msg, SharedMasterBoardData& data
   io_pub_.publish(io_msg);
 }
 
-void MBPublisher::publishRobotStatus(const RobotModeData_V1_X& data) const
+void MBPublisher::publishRobotStatus(industrial_msgs::RobotStatus& status, const SharedRobotModeData& data) const
 {
-  industrial_msgs::RobotStatus msg;
-
   //note that this is true as soon as the drives are powered,
   //even if the breakes are still closed
   //which is in slight contrast to the comments in the
   //message definition
-  msg.drives_powered.val = data.robot_power_on;
+  status.drives_powered.val = data.robot_power_on;
 
-  msg.e_stopped.val = data.emergency_stopped;
+  status.e_stopped.val = data.emergency_stopped;
 
   //I found no way to reliably get information if the robot is moving
   //data.programm_running would be true when using this driver to move the robot
   //but it would also be true when another programm is running that might not
   //in fact contain any movement commands
-  msg.in_motion.val = industrial_msgs::TriState::UNKNOWN;
+  status.in_motion.val = industrial_msgs::TriState::UNKNOWN;
 
   //the error code, if any, is not transmitted by this protocol
   //it can and should be fetched seperately
-  msg.error_code = 0;
+  status.error_code = 0;
 
   //note that e-stop is handled by a seperate variable
-  msg.in_error.val = data.protective_stopped;
+  status.in_error.val = data.protective_stopped;
+
+  status_pub_.publish(status);
+}
+
+void MBPublisher::publishRobotStatus(const RobotModeData_V1_X& data) const
+{
+  industrial_msgs::RobotStatus msg;
 
   if (data.robot_mode == robot_mode_V1_X::ROBOT_FREEDRIVE_MODE)
     msg.mode.val = industrial_msgs::RobotMode::MANUAL;
@@ -52,33 +57,12 @@ void MBPublisher::publishRobotStatus(const RobotModeData_V1_X& data) const
   msg.motion_possible.val = (data.robot_mode == robot_mode_V1_X::ROBOT_RUNNING_MODE)
                              ? industrial_msgs::TriState::ON : industrial_msgs::TriState::OFF;
 
-  status_pub_.publish(msg);
+  publishRobotStatus(msg, data);
 }
 
 void MBPublisher::publishRobotStatus(const RobotModeData_V3_0__1& data) const
 {
   industrial_msgs::RobotStatus msg;
-
-  //note that this is true as soon as the drives are powered,
-  //even if the breakes are still closed
-  //which is in slight contrast to the comments in the
-  //message definition
-  msg.drives_powered.val = data.robot_power_on;
-
-  msg.e_stopped.val = data.emergency_stopped;
-
-  //the error code, if any, is not transmitted by this protocol
-  //it can and should be fetched seperately
-  msg.error_code = 0;
-
-  //I found no way to reliably get information if the robot is moving
-  //data.programm_running would be true when using this driver to move the robot
-  //but it would also be true when another programm is running that might not
-  //in fact contain any movement commands
-  msg.in_motion.val = industrial_msgs::TriState::UNKNOWN;
-
-  //note that e-stop is handled by a seperate variable
-  msg.in_error.val = data.protective_stopped;
 
   msg.motion_possible.val = (data.robot_mode == robot_mode_V3_X::RUNNING)
                              ? industrial_msgs::TriState::ON : industrial_msgs::TriState::OFF;
@@ -88,7 +72,7 @@ void MBPublisher::publishRobotStatus(const RobotModeData_V3_0__1& data) const
   else
       msg.mode.val = industrial_msgs::RobotMode::AUTO;
 
-  status_pub_.publish(msg);
+  publishRobotStatus(msg, data);
 }
 
 bool MBPublisher::consume(MasterBoardData_V1_X& data)
