@@ -18,7 +18,6 @@ TCPSocket::~TCPSocket()
 void TCPSocket::setOptions(int socket_fd)
 {
   int flag = 1;
-  setsockopt(socket_fd, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(int));
   setsockopt(socket_fd, IPPROTO_TCP, TCP_QUICKACK, &flag, sizeof(int));
 }
 
@@ -123,6 +122,9 @@ bool TCPSocket::read(char *character)
 
 bool TCPSocket::read(uint8_t *buf, size_t buf_len, size_t &read)
 {
+  int flag = 1;
+  setsockopt(socket_fd_, IPPROTO_TCP, TCP_QUICKACK, &flag, sizeof(int));
+
   read = 0;
 
   if (state_ != SocketState::Connected)
@@ -144,6 +146,9 @@ bool TCPSocket::read(uint8_t *buf, size_t buf_len, size_t &read)
 
 bool TCPSocket::write(const uint8_t *buf, size_t buf_len, size_t &written)
 {
+  int flag = 1;
+  setsockopt(socket_fd_, IPPROTO_TCP, TCP_QUICKACK, &flag, sizeof(int));
+
   written = 0;
 
   if (state_ != SocketState::Connected)
